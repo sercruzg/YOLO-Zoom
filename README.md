@@ -40,11 +40,21 @@ And you need the annotations to be in the same path, however, if the path has th
 ```
 
 We include a simple matlab program to annotate the images based on the [EgoDaily](https://github.com/sercruzg/EgoDaily) dataset.
-To start training you can use the following command
+
+To train either of the streams you can use the standard YOLO train command 
+
+```
+./darknet detector train egoDailyDisamObj.data yoloEgoDaily384Disam.cfg darknet19_448.conv.23 -gpus 0 -clear -dont_show
+```
+
+For the second stream you can create another dataset comprising of only the bottom sections of the images, and train YOLO on it.
+
+To start training the join version of both streams you can use the following command
 
 ```
 ./darknet detector train_joint_bottom egoDailyDisamObj.data yoloEgoDaily384Disam.cfg ./backup/yoloEgoDaily384Disam_final.weights -bottomW ./backup/yoloEgoDailyH96W384Own4Disam_final.weights -bottomNet yoloEgoDailyH96W384Own4Disam.cfg -gpus 0 -dont_show -clear -joinNet yoloEgoDailyJoinLateH96W384Own4Disam.cfg
 ```
+
 
 ### Citing YOLO-Zoom
 If you find this code useful in your research, please consider citing:
