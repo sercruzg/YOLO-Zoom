@@ -39,7 +39,7 @@ We include a simple matlab program to annotate the images based on the [EgoDaily
 To start training you can use the following command
 
 ```
-./darknet detector train egoDailyDisamObj.data yoloContext-obj.cfg darknet19_448.conv.23 -gpus 0 -clear -dont_show
+./darknet detector train_joint_bottom /public/scruzgome2/yolo/yolov2/darknet/egoDailyDisamObj.data yoloEgoDaily384Disam.cfg ./backup/yoloEgoDaily384Disam_final.weights -bottomW ./backup/yoloEgoDailyH96W384Own4Disam_final.weights -bottomNet yoloEgoDailyH96W384Own4Disam.cfg -gpus 0 -dont_show -clear -joinNet yoloEgoDailyJoinLateH96W384Own4Disam.cfg
 ```
 
 ### Citing EgoDaily
