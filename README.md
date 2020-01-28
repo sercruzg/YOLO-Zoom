@@ -5,18 +5,22 @@ This code concatenates two Neural Network streams with the second stream being a
 
 ![GitHub Logo](streamConcat.png)
 
-To use the masking in a layer you can set Mask=1 like this:
+To use the concatenation you can use the following layer:
 
 ```
-[convolutional]
-batch_normalize=1
-filters=512
-size=1
-stride=1
-pad=1
-activation=leaky
-mask=1
+[concat_bottom]
+height=12
+width=12
+channels=1024
+stopbackward=1
+height_bot=3
+width_bot=12
+channels_bot=1024
+w_step=1
+h_step=1
+layer=-2
 ```
+
 The annotations are the same as YOLO, to train you need a file "egoDailyDisamTrain.txt" with each line pointing to the images 
 
 ```
