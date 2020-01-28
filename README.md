@@ -45,15 +45,15 @@ To start training you can use the following command
 ### Citing EgoDaily
 If you find this code useful in your research, please consider citing:
 ```
-@article{CRUZ2019131,
-title = "Is that my hand? An egocentric dataset for hand disambiguation",
-journal = "Image and Vision Computing",
-volume = "89",
-pages = "131 - 143",
-year = "2019",
-issn = "0262-8856",
-doi = "https://doi.org/10.1016/j.imavis.2019.06.002",
-url = "http://www.sciencedirect.com/science/article/pii/S026288561930085X",
-author = "Sergio Cruz and Antoni Chan"
+@InProceedings{10.1007/978-3-030-30645-8_11,
+author="Cruz, Sergio R.
+and Chan, Antoni B.",
+title="Hand Detection Using Zoomed Neural Networks",
+booktitle="Image Analysis and Processing -- ICIAP 2019",
+year="2019",
+publisher="Springer International Publishing",
+address="Cham",
+pages="114--124",
+isbn="978-3-030-30645-8"
 }
 ```
