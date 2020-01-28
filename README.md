@@ -42,7 +42,7 @@ To start training you can use the following command
 ./darknet detector train_joint_bottom /public/scruzgome2/yolo/yolov2/darknet/egoDailyDisamObj.data yoloEgoDaily384Disam.cfg ./backup/yoloEgoDaily384Disam_final.weights -bottomW ./backup/yoloEgoDailyH96W384Own4Disam_final.weights -bottomNet yoloEgoDailyH96W384Own4Disam.cfg -gpus 0 -dont_show -clear -joinNet yoloEgoDailyJoinLateH96W384Own4Disam.cfg
 ```
 
-### Citing EgoDaily
+### Citing YOLO-Zoom
 If you find this code useful in your research, please consider citing:
 ```
 @InProceedings{10.1007/978-3-030-30645-8_11,
