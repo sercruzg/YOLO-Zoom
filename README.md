@@ -41,6 +41,8 @@ And you need the annotations to be in the same path, however, if the path has th
 
 We include a simple matlab program to annotate the images based on the [EgoDaily](https://github.com/sercruzg/EgoDaily) dataset.
 
+### Training
+
 To train either of the streams you can use the standard YOLO train command 
 
 ```
@@ -54,6 +56,35 @@ To start training the join version of both streams you can use the following com
 ```
 ./darknet detector train_joint_bottom egoDailyDisamObj.data yoloEgoDaily384Disam.cfg ./backup/yoloEgoDaily384Disam_final.weights -bottomW ./backup/yoloEgoDailyH96W384Own4Disam_final.weights -bottomNet yoloEgoDailyH96W384Own4Disam.cfg -gpus 0 -dont_show -clear -joinNet yoloEgoDailyJoinLateH96W384Own4Disam.cfg
 ```
+
+### Testing
+
+After training you can test the YOLO detector using the following command
+
+```
+./darknet detector test egoDailyDisamObj.data yoloEgoDaily384Disam.cfg ./backup/yoloEgoDaily384Disam_final.weights -imWidth 1920 -imHeight 1080 < egoDailyTest.txt > yoloEgoDailyDisam.txt
+```
+
+The parameter ``-imWidth`` and ``-imHeight`` define the image sizes for the final detection outputs. The file ``egoDailyTest.txt`` contains the list of images for testing, with each line being
+The file ``yoloEgoDailyDisam.txt`` will contain the final detections, with the 3 first lines being some Network outputs (not important) and then a series of lines for each image as follows:
+
+```
+Enter Image Path: 1egoDailyDatabase/images/subject1/bike/bike1/frame10032.jpg: Predicted in 0.319138 seconds.
+845
+20 0 129 76 0.000320 0
+0 0 210 168 0.000195 0
+0 0 601 531 0.000160 1
+0 0 756 263 0.000186 1
+```
+
+The first line being the image being tested on. The second line being the number of detections YOLO generated. Finally a series of lines, each line having a single detection with the format ``x1 y1 x2 y2 score label``, in this example the file would contain 845 lines with the format.
+
+
+Finally, for testing the joint architecture you can use the following command:
+
+```
+./darknet detector test_joint_bottom egoDailyDisamObj.data yoloEgoDaily384Disam.cfg .backup/yoloEgoDaily384Disam_final.weights -bottomW ./backup/yoloEgoDailyH96W384Own4Disam_final.weights -bottomNet yoloEgoDailyH96W384Own4Disam.cfg -gpus 0 -dont_show -clear -joinNet yoloEgoDailyJoinLateH96W384Own4Disam.cfg -jointW ./backup/yoloEgoDailyJoinLateH96W384Own4Disam_final.weights -fileName egoDailyTest.txt > yoloEgoDailyJoinLateH96W384Own4Disam.txt
+
 
 
 ### Citing YOLO-Zoom
