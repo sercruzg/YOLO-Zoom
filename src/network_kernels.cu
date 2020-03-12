@@ -821,3 +821,41 @@ float train_network_joint_datum_gpu(network net, network contNet, network joinNe
     }
     return error;
 }
+
+float *network_predict_jointBottom_gpu(network net, network contextNet, network joinNet, float *input, float *input_bot)
+{
+    if (net.gpu_index != cuda_get_device())
+		cuda_set_device(net.gpu_index);
+    int size = get_network_input_size(net) * net.batch;
+    float *oriData = cuda_make_array(input, size);
+    network_state state;
+    state.index = 0;
+    state.net = net;
+    state.input = oriData;
+    state.truth = 0;
+    state.train = 0;
+    state.delta = 0;
+    forward_network_gpu(net, state);
+
+    int bot_size = get_network_input_size(contextNet) * contextNet.batch;
+    float *botData = cuda_make_array(input_bot, bot_size);
+    state.index = 0;
+    state.net = contextNet;
+    state.input = botData;
+    state.truth = 0;
+    state.train = 0;
+    state.delta = 0;
+    forward_network_gpu(contextNet, state);
+
+    state.index = 0;
+    state.net = joinNet;
+    state.objNet = net;
+    state.contNet = contextNet;
+    state.truth = 0;
+    state.train = 0;
+    state.delta = 0;
+    forward_network_gpu(joinNet, state);
+    float *out = get_network_output_gpu(joinNet);
+    cuda_free(oriData);
+    return out;
+}

@@ -685,3 +685,21 @@ float train_joint_network(network net, network contNet, network join, data d, da
     free(y);
     return (float)sum/(n*batch);
 }
+
+float *network_predict_jointBottom(network net, network contNet, network joinNet, float *input, float *input_bot)
+{
+#ifdef GPU
+    if(gpu_index >= 0)  return network_predict_jointBottom_gpu(net, contNet, joinNet, input, input_bot);
+#endif
+
+    network_state state;
+    state.net = net;
+    state.index = 0;
+    state.input = input;
+    state.truth = 0;
+    state.train = 0;
+    state.delta = 0;
+    forward_network(net, state);
+    float *out = get_network_output(net);
+    return out;
+}

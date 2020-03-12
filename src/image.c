@@ -355,6 +355,80 @@ void draw_detections_abs(image im, int num, float thresh, box *boxes, float **pr
     }
 }
 
+void draw_detections_imSize(image im, int num, float thresh, box *boxes, float **probs, char **names, image **alphabet, int classes, int imWidth, int imHeight)
+{
+    // 1920 1080
+    // 1280 720
+    int i;
+    int imW = imWidth;
+    int imH = imHeight;
+    int count = 0;
+    for(i = 0; i < num; ++i){
+        int class_id = max_index(probs[i], classes);
+        float prob = probs[i][class_id];
+        if(prob > thresh){
+            count++;
+        }
+    }
+    printf("%d\n", count);
+    for(i = 0; i < num; ++i){
+        int class_id = max_index(probs[i], classes);
+        float prob = probs[i][class_id];
+        if(prob > thresh){
+
+                        //// for comparison with OpenCV version of DNN Darknet Yolo v2
+                        //printf("\n %f, %f, %f, %f, ", boxes[i].x, boxes[i].y, boxes[i].w, boxes[i].h);
+                        // int k;
+                        //for (k = 0; k < classes; ++k) {
+                        //      printf("%f, ", probs[i][k]);
+                        //}
+                        //printf("\n");
+
+            int width = im.h * .012;
+
+            if(0){
+                width = pow(prob, 1./2.)*10+1;
+                alphabet = 0;
+            }
+
+            //printf("%s: test %.0f%%\n", names[class_id], prob*100);
+            int offset = class_id*123457 % classes;
+            float red = get_color(2,offset,classes);
+ 	    float green = get_color(1,offset,classes);
+            float blue = get_color(0,offset,classes);
+            float rgb[3];
+
+            //width = prob*20+2;
+
+            rgb[0] = red;
+            rgb[1] = green;
+            rgb[2] = blue;
+            box b = boxes[i];/*
+            b.x = 1 - b.x;
+            b.y = 1 - b.y;*/
+
+            int left  = (b.x-b.w/2.)*imW;
+            int right = (b.x+b.w/2.)*imW;
+            int top   = (b.y-b.h/2.)*imH;
+            int bot   = (b.y+b.h/2.)*imH;
+
+            if(left < 0) left = 0;
+            if(right > imW-1) right = imW-1;
+            if(top < 0) top = 0;
+            if(bot > imH-1) bot = imH-1;
+	    //fprintf(f, "%d %d %d %d %f %f\n", left, top, right, bot, prob);
+            printf("%d %d %d %d %f %d\n", left, top, right, bot, prob, class_id);
+            //printf("%s: test %.0f%%\n", names[class_id], prob*100);
+
+            //draw_box_width(im, left, top, right, bot, width, red, green, blue);
+            /*if (alphabet) {
+                image label = get_label(alphabet, names[class_id], (im.h*.03)/10);
+                draw_label(im, top + width, left, label, rgb);
+            }*/
+        }
+    }
+}
+
 #ifdef OPENCV
 void draw_detections_cv(IplImage* show_img, int num, float thresh, box *boxes, float **probs, char **names, image **alphabet, int classes)
 {

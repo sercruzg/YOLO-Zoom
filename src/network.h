@@ -96,6 +96,7 @@ void forward_network_gpu(network net, network_state state);
 void backward_network_gpu(network net, network_state state);
 void update_network_gpu(network net);
 float train_network_joint_datum_gpu(network net, network contNet, network joinNet, float *x, float *y, float *x_f, float *y_f);
+float *network_predict_jointBottom_gpu(network net, network contextNet, network joinNet, float *input, float *input_bot);
 #endif
 
 float get_current_rate(network net);

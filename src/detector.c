@@ -1058,7 +1058,7 @@ void fill_truthGrad_detection(char *path, int num_boxes, float *truth)
     free(boxes);
 }
 
-void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filename, float thresh, int dont_show)
+void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filename, float thresh, int dont_show, int imWidth, int imHeight)
 {
     list *options = read_data_cfg(datacfg);
     char *name_list = option_find_str(options, "names", "data/names.list");
@@ -1102,7 +1102,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
         printf("%s: Predicted in %f seconds.\n", input, sec(clock()-time));
         get_region_boxes(l, 1, 1, -1, probs, boxes, 0, 0);
         //if (nms) do_nms_sort(boxes, probs, l.w*l.h*l.n, l.classes, nms);
-        draw_detections(im, l.w*l.h*l.n, -1, boxes, probs, names, alphabet, l.classes);
+        draw_detections_imSize(im, l.w*l.h*l.n, -1, boxes, probs, names, alphabet, l.classes, imWidth, imHeight);
         //save_image(im, "predictions");
         
         /*fprintf(f, "%d\n", l.w*l.h*l.n);
@@ -1307,6 +1307,99 @@ void train_joint_bottom(char *datacfg, char *cfgfile, char *weightfile,  char *w
     
 }
 
+void test_joint_bottom(char *datacfg, char *cfgfile, char *weightfile, char *filename, float thresh, int dont_show, char *weightContext, char *jointNet, char *joinWeights, char *outFile, char *cfgContext, int start, int imWidth, int imHeight)
+{
+    list *options = read_data_cfg(datacfg);
+    char *name_list = option_find_str(options, "names", "data/names.list");
+    char **names = get_labels(name_list);
+    
+    list *plist = get_paths(filename);
+    int N = plist->size;
+    char **testPaths = (char **)list_to_array(plist);
+
+    image **alphabet = load_alphabet();
+    network net = parse_network_cfg_custom(cfgfile, 1);
+    network contextNet = parse_network_cfg_custom(cfgContext, 1);
+    network joinNet = parse_network_cfg_custom(jointNet, 1);
+    if(weightfile){
+        load_weights(&net, weightfile);
+        load_weights(&contextNet, weightContext);
+        load_weights(&joinNet, joinWeights);
+    }
+    set_batch_network(&net, 1);
+    set_batch_network(&contextNet, 1);
+    set_batch_network(&joinNet, 1);
+    srand(2222222);
+    clock_t time;
+    char buff[256];
+    char *input = buff;
+    int j,k;
+    float nms=.4;
+    int counter = 1;
+    for(int i = start; i < N; i++){/*
+        if(filename){
+            strncpy(input, filename, 256);
+			if (input[strlen(input) - 1] == 0x0d) input[strlen(input) - 1] = 0;
+        } else {
+            printf("Enter Image Path: %d", counter++);
+            fflush(stdout);
+            input = fgets(input, 256, stdin);
+            if(!input) return;
+            strtok(input, "\n");
+        }*/
+        char *input = testPaths[i];
+        image im = load_image_color(input,0,0);
+        int oh = im.h;
+        int ow = im.w;
+        int bot_h = oh / joinNet.div;
+        image crop = crop_image(im, 0, oh - bot_h, ow, bot_h);
+        image crop_sized = resize_image(crop, contextNet.w, contextNet.h);
+        
+        image sized = resize_image(im, joinNet.w, joinNet.h);
+        layer l = joinNet.layers[joinNet.n-1];
+
+        box *boxes = calloc(l.w*l.h*l.n, sizeof(box));
+        float **probs = calloc(l.w*l.h*l.n, sizeof(float *));
+        for(j = 0; j < l.w*l.h*l.n; ++j) probs[j] = calloc(l.classes, sizeof(float *));
+
+        float *X = sized.data;
+        float *X_bot = crop_sized.data;
+        time=clock();
+        network_predict_jointBottom(net, contextNet, joinNet, X, X_bot);
+        printf("%s: Predicted in %f seconds.%d\n", input, sec(clock()-time),i);
+        get_region_boxes(l, 1, 1, -1, probs, boxes, 0, 0);
+        //if (nms) do_nms_sort(boxes, probs, l.w*l.h*l.n, l.classes, nms);
+        draw_detections_imSize(im, l.w*l.h*l.n, -1, boxes, probs, names, alphabet, l.classes, imWidth, imHeight);
+        //save_image(im, "predictions");
+        
+        /*fprintf(f, "%d\n", l.w*l.h*l.n);
+        for(k = 0; k < l.w*l.h*l.n; ++k){
+            int class_id = max_index(probs[k], l.classes);
+            float prob = probs[k][class_id];
+            if(prob > thresh){
+                fprintf(f, "%f %f %f %f %f %f\n", boxes[k].x, boxes[k].y, boxes[k].w, boxes[k].h, prob);
+            }
+        }*/
+		if (!dont_show) {
+			//show_image(im, "predictions");
+		}
+
+        free_image(im);
+        free_image(sized);
+        free_image(crop);
+	free_image(crop_sized);
+        free(boxes);
+        free_ptrs((void **)probs, l.w*l.h*l.n);
+#ifdef OPENCV
+		if (!dont_show) {
+			//cvWaitKey(0);
+			cvDestroyAllWindows();
+		}
+#endif
+        //if (filename) break;
+    }
+}
+
 void run_detector(int argc, char **argv)
 {
 	int dont_show = find_arg(argc, argv, "-dont_show");
@@ -1325,6 +1418,9 @@ void run_detector(int argc, char **argv)
     char *bottomWeight = find_char_arg(argc, argv, "-bottomW", 0);
     char *bottomNet = find_char_arg(argc, argv, "-bottomNet", 0);
     char *joinNet = find_char_arg(argc, argv, "-joinNet", 0);
+    char *jointWeight = find_char_arg(argc, argv, "-jointW", 0);
+    int imWidth = find_int_arg(argc, argv, "-imWidth", 1920);
+	int imHeight = find_int_arg(argc, argv, "-imHeight", 1080);
     if(argc < 4){
         fprintf(stderr, "usage: %s %s [train/test/valid] [cfg] [weights (optional)]\n", argv[0], argv[1]);
         return;
@@ -1361,9 +1457,10 @@ void run_detector(int argc, char **argv)
 		if (weights[strlen(weights) - 1] == 0x0d) weights[strlen(weights) - 1] = 0;
     char *filename = (argc > 6) ? argv[6]: 0;
     filename = find_char_arg(argc, argv, "-fileName", 0);
-    if(0==strcmp(argv[2], "test")) test_detector(datacfg, cfg, weights, filename, thresh, dont_show);
+    if(0==strcmp(argv[2], "test")) test_detector(datacfg, cfg, weights, filename, thresh, dont_show, imWidth, imHeight);
     else if(0==strcmp(argv[2], "train")) train_detector(datacfg, cfg, weights, gpus, ngpus, clear, dont_show);
     else if(0==strcmp(argv[2], "train_joint_bottom")) train_joint_bottom(datacfg, cfg, weights, bottomWeight, bottomNet, gpus, ngpus, clear, dont_show, joinNet);
+    else if(0==strcmp(argv[2], "test_joint_bottom")) test_joint_bottom(datacfg, cfg, weights, filename, thresh, dont_show, bottomWeight, joinNet, jointWeight, out_filename, bottomNet,start, imWidth, imHeight);
     else if(0==strcmp(argv[2], "valid")) validate_detector(datacfg, cfg, weights);
     else if(0==strcmp(argv[2], "recall")) validate_detector_recall(datacfg, cfg, weights);
 	else if(0==strcmp(argv[2], "map")) validate_detector_map(datacfg, cfg, weights, thresh);
