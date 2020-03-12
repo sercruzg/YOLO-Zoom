@@ -83,7 +83,7 @@ The first line being the image being tested on. The second line being the number
 Finally, for testing the joint architecture you can use the following command:
 
 ```
-./darknet detector test_joint_bottom egoDailyDisamObj.data yoloEgoDaily384Disam.cfg .backup/yoloEgoDaily384Disam_final.weights -bottomW ./backup/yoloEgoDailyH96W384Own4Disam_final.weights -bottomNet yoloEgoDailyH96W384Own4Disam.cfg -gpus 0 -dont_show -clear -joinNet yoloEgoDailyJoinLateH96W384Own4Disam.cfg -jointW ./backup/yoloEgoDailyJoinLateH96W384Own4Disam_final.weights -fileName egoDailyTest.txt > yoloEgoDailyJoinLateH96W384Own4Disam.txt
+./darknet detector test_joint_bottom egoDailyDisamObj.data yoloEgoDaily384Disam.cfg ./backup/yoloEgoDaily384Disam_final.weights -bottomW ./backup/yoloEgoDailyH96W384Own4Disam_final.weights -bottomNet yoloEgoDailyH96W384Own4Disam.cfg -gpus 0 -dont_show -clear -joinNet yoloEgoDailyJoinLateH96W384Own4Disam.cfg -jointW ./backup/yoloEgoDailyJoinLateH96W384Own4Disam_final.weights -fileName egoDailyTest.txt > yoloEgoDailyJoinLateH96W384Own4Disam.txt
 ```
 
 
